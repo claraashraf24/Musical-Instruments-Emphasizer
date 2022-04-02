@@ -22,8 +22,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.player = QMediaPlayer() # initializer
         self.action_open_2.triggered.connect(self.play_sound)
         self.timer.timeout.connect(self.signal_plot)
-        # self.pause_button.clicked.connect(self.pause)
-        # self.play_button.clicked.connect(self.play)
+        self.pause_button.clicked.connect(self.pause)
+        self.play_button.clicked.connect(self.replay)
         
     def play_sound(self):
         full_file_path = os.path.join(os.getcwd(), 'test.wav')
@@ -32,7 +32,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.player.setMedia(content)
         self.player.play()
         self.timer.start()
-
+    
+    def pause(self):
+        self.player.pause()
+        self.timer.stop()
+    
+    def replay(self):
+        self.player.play()
+        self.timer.start(500)
+        
     def signal_plot(self):
         global ptr
         spf = wave.open("test.wav", "r")
