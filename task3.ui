@@ -25,7 +25,7 @@
         <string notr="true">background-color: rgb(66, 66, 66);</string>
        </property>
        <property name="currentIndex">
-        <number>3</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="tab">
         <attribute name="title">
@@ -166,6 +166,19 @@ font: 10pt &quot;Eras Demi ITC&quot;;</string>
                   </layout>
                  </item>
                 </layout>
+               </widget>
+               <widget class="QPushButton" name="equalize_button">
+                <property name="geometry">
+                 <rect>
+                  <x>300</x>
+                  <y>150</y>
+                  <width>75</width>
+                  <height>23</height>
+                 </rect>
+                </property>
+                <property name="text">
+                 <string>equalize</string>
+                </property>
                </widget>
               </widget>
              </item>
