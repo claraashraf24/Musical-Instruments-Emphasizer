@@ -1,4 +1,5 @@
 from time import time
+from tkinter import OFF
 import numpy as np 
 from numpy.fft import fft, ifft
 from PyQt5 import QtWidgets, uic, QtCore
@@ -9,11 +10,16 @@ from pydub import AudioSegment
 from pydub.playback import play
 import os
 import sys  
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+import matplotlib.pyplot as plt
+from scipy import signal
 import wave, sys
 from scipy.io import wavfile
 import scipy
+import pyqtgraph as pg
 import vlc 
-
+piano_status= 'OFF'
+drums_status= 'OFF'
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -29,6 +35,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.time = []
         self.fs = 0
         self.ptr=0
+       
+        self.selected_note= ''
+        
         self.player = QMediaPlayer() # initializer
         self.action_open_2.triggered.connect(lambda:self.open_audio_file())
         self.timer.timeout.connect(self.signal_plot)
@@ -38,6 +47,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.piano_label.mousePressEvent  = self.piano
         self.drums_label.mousePressEvent = self.drums
         self.xylo_label.mousePressEvent = self.xylophone
+        self.piano_filter.clicked.connect(self.piano_filters)
+        self.drums_filter.clicked.connect(self.drums_filters)
         # self.piano.connect(self.playinstrument)
         # self.drums.connect(self.playinstrument)
         # self.xylophone.connect(self.playinstrument)
@@ -60,6 +71,16 @@ class MainWindow(QtWidgets.QMainWindow):
             self.sliders[i].setSingleStep(1)
             self.sliders[i].setTickPosition(QSlider.TicksBelow)
             #self.sliders[i].setObjectName(self.sliders_names[i])
+     
+    def piano_filters(self):
+         global piano_status
+         piano_status='ON'
+         
+
+
+    def drums_filters(self):
+        global drums_status
+        drums_status='ON'
 
     def adjust_volume(self):
         value = int(self.volume_slider.value())
@@ -80,8 +101,7 @@ class MainWindow(QtWidgets.QMainWindow):
             print("Bar 1") 
             self.selected_note="Bar 1.wav"
             
-            
-    
+
          if x/self.xylo_label.size().width() > 0.16 and x/self.xylo_label.size().width() < 0.25 and y/self.xylo_label.size().width() > 0.13 and y/self.xylo_label.size().width() < 0.32 :
             print("Bar 2")
             self.selected_note="Bar 2.wav"
@@ -118,6 +138,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     
     def drums(self, event):
+        global drums_status
         x= event.pos().x()
         y= event.pos().y()
         if x/self.drums_label.size().width() > 0.027 and x/self.drums_label.size().width() < 0.26 and y/self.drums_label.size().width() > 0.009 and y/self.drums_label.size().width() < 0.07 :
@@ -130,11 +151,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if x/self.drums_label.size().width() > 0.53 and x/self.drums_label.size().width() < 0.69 and y/self.drums_label.size().width() > 0.10 and y/self.drums_label.size().width() < 0.25 :
             print("Medium Tom") 
-            self.selected_note="Medium Tom.wav"
+            if drums_status=='OFF':
+                self.selected_note="Medium Tom.wav" 
+            else :
+                self.selected_note="Medium Tom_f.wav" 
+            
 
         if x/self.drums_label.size().width() > 0.21 and x/self.drums_label.size().width() < 0.50 and y/self.drums_label.size().width() > 0.05 and y/self.drums_label.size().width() < 0.20 :
             print("High Tom")
-            self.selected_note="High Tom.wav"
+            if drums_status=='OFF':
+                self.selected_note="High Tom.wav" 
+            else :
+                self.selected_note="High Tom_f.wav" 
 
         if x/self.drums_label.size().width() > 0.05 and x/self.drums_label.size().width() < 0.24 and y/self.drums_label.size().width() > 0.15 and y/self.drums_label.size().width() < 0.50 :
             print("Stand Tom") 
@@ -142,7 +170,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if x/self.drums_label.size().width() > 0.41 and x/self.drums_label.size().width() < 0.72 and y/self.drums_label.size().width() > 0.30 and y/self.drums_label.size().width() < 1.0 :
             print("Bass Drum") 
-            self.selected_note="Bass Drum.wav"
+            if drums_status=='OFF':
+                self.selected_note="Bass Drum.wav" 
+            else :
+                self.selected_note="Bass Drum_f.wav" 
+            print(self.selected_note)
 
         if x/self.drums_label.size().width() > 0.76 and x/self.drums_label.size().width() < 0.84 and y/self.drums_label.size().width() > 0.20 and y/self.drums_label.size().width() < 0.63 :
             print("Snare Drum") 
@@ -155,16 +187,21 @@ class MainWindow(QtWidgets.QMainWindow):
     
 
     def piano(self,event):
+        global piano_status
         x = event.pos().x()
         y = event.pos().y() 
 
         if x/self.piano_label.size().width() > 0.15 and x/self.piano_label.size().width() < 0.20  and y/self.piano_label.size().width() > 0.30 and y/self.piano_label.size().width() < 0.40 :
             print("White Key 1") 
-            self.selected_note="White Key 1.wav"  
+            if piano_status=='OFF':
+                self.selected_note="White Key 1.wav" 
+            else:
+                self.selected_note="White Key 1_f.wav" 
 
         if x/self.piano_label.size().width() > 0.20 and x/self.piano_label.size().width() < 0.25 and y/self.piano_label.size().width() > 0.30 and y/self.piano_label.size().width() < 0.40 :
             print("White Key 2")
             self.selected_note="White Key 2.wav"
+            
 
         if x/self.piano_label.size().width() > 0.25 and x/self.piano_label.size().width() < 0.30 and y/self.piano_label.size().width() > 0.30 and y/self.piano_label.size().width() < 0.40 :
             print("White Key 3")
@@ -173,6 +210,11 @@ class MainWindow(QtWidgets.QMainWindow):
         if x/self.piano_label.size().width() > 0.30 and x/self.piano_label.size().width() < 0.35 and y/self.piano_label.size().width() > 0.30 and y/self.piano_label.size().width() < 0.40 :
             print("White Key 4")
             self.selected_note="White Key 4.wav"
+            if piano_status=='OFF':
+                self.selected_note="White Key 4.wav" 
+            else :
+                self.selected_note="White Key 4_f.wav"
+            print(self.selected_note) 
 
         if x/self.piano_label.size().width() > 0.35 and x/self.piano_label.size().width() < 0.40 and y/self.piano_label.size().width() > 0.30 and y/self.piano_label.size().width() < 0.40 :
             print("White Key 5")
@@ -253,11 +295,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if x/self.piano_label.size().width() > 0.79 and x/self.piano_label.size().width() < 0.83 and y/self.piano_label.size().width() > 0.10 and y/self.piano_label.size().width() < 0.29 :
             print("Black Key 10")
             self.selected_note="Black Key 5.wav"
-        self.playinstrument() 
-       
-
-        # print(x)
-        # print(y)
+        self.playinstrument()
     
     def equalizee(self):
         self.timer.start()
@@ -293,17 +331,26 @@ class MainWindow(QtWidgets.QMainWindow):
         
       
     def open_audio_file(self):
-        self.timer.start()
+
         self.full_file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
             None, 'Open Song', QtCore.QDir.rootPath(), 'wav(*.wav)')
         self.playAudioFile(self.full_file_path)
         spf = wave.open(self.full_file_path, "r")
-        self.signal = spf.readframes(-1)
-        self.signal = np.frombuffer(self.signal, "int16")
-        self.fs = spf.getframerate()
-        self.time = np.linspace(0, len(self.signal) / self.fs, num=len(self.signal))
+        self.signal = spf.readframes(-1) # gets signals
+        self.signal = np.frombuffer(self.signal, "int16") 
+        self.fs = spf.getframerate() 
+        self.time = np.linspace(0, len(self.signal) / self.fs, num=len(self.signal)) 
+        self.timer.start()
+        self.spectrogram()
     
-           
+    def spectrogram(self):
+        sample_rate, samples = wavfile.read('new.wav')
+        print(sample_rate)
+        print(samples.flatten())
+        SpectorgramFrequency, SpectorgramTime, Sxx = signal.spectrogram(samples.flatten(), sample_rate)
+        self.spectrogram_widget.canvas.axes.pcolormesh(SpectorgramTime, SpectorgramFrequency, Sxx)
+        self.spectrogram_widget.canvas.draw()
+        self.Canvas.draw()       
 
     def playAudioFile(self, full_file_path):
         #self.pushButton_play.setText("Pause")
