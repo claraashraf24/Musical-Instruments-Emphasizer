@@ -12,7 +12,8 @@ import sys
 import wave, sys
 from scipy.io import wavfile
 import scipy
-import vlc 
+from scipy import signal
+# import vlc 
 
 
 
@@ -29,10 +30,16 @@ class MainWindow(QtWidgets.QMainWindow):
         self.time = []
         self.fs = 0
         self.ptr=0
+        self.piano_status='OFF'
+        self.drums_status='OFF'
         self.player = QMediaPlayer() # initializer
+        self.selected_note=""
+        self.tobe_filtered=self.selected_note
         self.action_open_2.triggered.connect(lambda:self.open_audio_file())
         self.timer.timeout.connect(self.signal_plot)
         self.pause_button.clicked.connect(self.pause)
+        self.piano_filter1.clicked.connect(self.piano_filter)
+        self.drums_filter1.clicked.connect(self.drums_filter)
         self.play_button.clicked.connect(self.play)
         self.equalize_button.clicked.connect(self.equalizee)
         self.piano_label.mousePressEvent  = self.piano
@@ -71,6 +78,16 @@ class MainWindow(QtWidgets.QMainWindow):
     # def change_volume_label(self):
     #     self.volume_number.setText(str(value)) 
 
+    def piano_filter(self):
+        self.piano_status='ON'
+
+
+    def drums_filter(self):
+        self.drums_status='ON'
+
+
+
+
 
     def xylophone(self, event):
          x= event.pos().x()
@@ -80,8 +97,6 @@ class MainWindow(QtWidgets.QMainWindow):
             print("Bar 1") 
             self.selected_note="Bar 1.wav"
             
-            
-    
          if x/self.xylo_label.size().width() > 0.16 and x/self.xylo_label.size().width() < 0.25 and y/self.xylo_label.size().width() > 0.13 and y/self.xylo_label.size().width() < 0.32 :
             print("Bar 2")
             self.selected_note="Bar 2.wav"
@@ -130,11 +145,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if x/self.drums_label.size().width() > 0.53 and x/self.drums_label.size().width() < 0.69 and y/self.drums_label.size().width() > 0.10 and y/self.drums_label.size().width() < 0.25 :
             print("Medium Tom") 
-            self.selected_note="Medium Tom.wav"
+            if self.drums_status=='OFF':
+                self.selected_note="Medium Tom.wav" 
+            else :
+                self.selected_note="Medium Tom_f.wav" 
+            
 
         if x/self.drums_label.size().width() > 0.21 and x/self.drums_label.size().width() < 0.50 and y/self.drums_label.size().width() > 0.05 and y/self.drums_label.size().width() < 0.20 :
             print("High Tom")
-            self.selected_note="High Tom.wav"
+            if self.drums_status=='OFF':
+                self.selected_note="High Tom.wav" 
+            else :
+                self.selected_note="High Tom_f.wav" 
 
         if x/self.drums_label.size().width() > 0.05 and x/self.drums_label.size().width() < 0.24 and y/self.drums_label.size().width() > 0.15 and y/self.drums_label.size().width() < 0.50 :
             print("Stand Tom") 
@@ -142,7 +164,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if x/self.drums_label.size().width() > 0.41 and x/self.drums_label.size().width() < 0.72 and y/self.drums_label.size().width() > 0.30 and y/self.drums_label.size().width() < 1.0 :
             print("Bass Drum") 
-            self.selected_note="Bass Drum.wav"
+            if self.drums_status=='OFF':
+                self.selected_note="Bass Drum.wav" 
+            else :
+                self.selected_note="Bass Drum_f.wav" 
 
         if x/self.drums_label.size().width() > 0.76 and x/self.drums_label.size().width() < 0.84 and y/self.drums_label.size().width() > 0.20 and y/self.drums_label.size().width() < 0.63 :
             print("Snare Drum") 
@@ -160,11 +185,15 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if x/self.piano_label.size().width() > 0.15 and x/self.piano_label.size().width() < 0.20  and y/self.piano_label.size().width() > 0.30 and y/self.piano_label.size().width() < 0.40 :
             print("White Key 1") 
-            self.selected_note="White Key 1.wav"  
+            if self.piano_status=='OFF':
+                self.selected_note="White Key 1.wav" 
+            else:
+                self.selected_note="White Key 1_f.wav" 
 
         if x/self.piano_label.size().width() > 0.20 and x/self.piano_label.size().width() < 0.25 and y/self.piano_label.size().width() > 0.30 and y/self.piano_label.size().width() < 0.40 :
             print("White Key 2")
             self.selected_note="White Key 2.wav"
+            
 
         if x/self.piano_label.size().width() > 0.25 and x/self.piano_label.size().width() < 0.30 and y/self.piano_label.size().width() > 0.30 and y/self.piano_label.size().width() < 0.40 :
             print("White Key 3")
@@ -173,6 +202,10 @@ class MainWindow(QtWidgets.QMainWindow):
         if x/self.piano_label.size().width() > 0.30 and x/self.piano_label.size().width() < 0.35 and y/self.piano_label.size().width() > 0.30 and y/self.piano_label.size().width() < 0.40 :
             print("White Key 4")
             self.selected_note="White Key 4.wav"
+            if self.piano_status=='OFF':
+                self.selected_note="White Key 4.wav" 
+            else :
+                self.selected_note="White Key 4_f.wav" 
 
         if x/self.piano_label.size().width() > 0.35 and x/self.piano_label.size().width() < 0.40 and y/self.piano_label.size().width() > 0.30 and y/self.piano_label.size().width() < 0.40 :
             print("White Key 5")
@@ -259,83 +292,93 @@ class MainWindow(QtWidgets.QMainWindow):
         # print(x)
         # print(y)
     
-    def equalizee(self):
-        self.timer.start()
-        # [bass , piano--- , altoSaxophone--- , guitar--- , flute, bell]
-        freq_min = [0, 1000, 250]
-        freq_max = [800, 2000, 900]
-        # freq_min = [0, 1000, 250, 2000, 262, 73]
-        # freq_max = [800, 2000, 900, 15000, 2092, 1172]
+    # def equalizee(self):
+    #     self.timer.start()
+    #     # [bass , piano--- , altoSaxophone--- , guitar--- , flute, bell]
+    #     freq_min = [0, 1000, 250]
+    #     freq_max = [800, 2000, 900]
+    #     # freq_min = [0, 1000, 250, 2000, 262, 73]
+    #     # freq_max = [800, 2000, 900, 15000, 2092, 1172]
 
 
-        Gains = []
-        Gains.append(self.instrument1_slider.value())
-        Gains.append(self.instrument2_slider.value())
-        Gains.append(self.instrument3_slider.value())
+    #     Gains = []
+    #     Gains.append(self.instrument1_slider.value())
+    #     Gains.append(self.instrument2_slider.value())
+    #     Gains.append(self.instrument3_slider.value())
       
         
-        self.fs, self.data = wavfile.read(self.full_file_path)
-        self.data = self.data / 2.0 ** 15
-        N = len(self.data)
+    #     self.fs, self.data = wavfile.read(self.full_file_path)
+    #     self.data = self.data / 2.0 ** 15
+    #     N = len(self.data)
 
-        rfft_coeff = np.fft.rfft(self.data)
-        frequencies = np.fft.rfftfreq(N, 1. / self.fs)
+    #     rfft_coeff = np.fft.rfft(self.data)
+    #     frequencies = np.fft.rfftfreq(N, 1. / self.fs)
 
-        for i in range(3):
-            for j in range(len(frequencies)):
-                if frequencies[j] >= freq_min[i] and frequencies[j] <= freq_max[i]:
-                    rfft_coeff[j] = rfft_coeff[j] * Gains[i]
+    #     for i in range(3):
+    #         for j in range(len(frequencies)):
+    #             if frequencies[j] >= freq_min[i] and frequencies[j] <= freq_max[i]:
+    #                 rfft_coeff[j] = rfft_coeff[j] * Gains[i]
 
-        Equalized_signal = np.fft.irfft(rfft_coeff)
-        scipy.io.wavfile.write('new.wav', self.fs, Equalized_signal)
-        self.media.stop()
-        self.playAudioFile('new.wav') 
+    #     Equalized_signal = np.fft.irfft(rfft_coeff)
+    #     scipy.io.wavfile.write('new.wav', self.fs, Equalized_signal)
+    #     self.media.stop()
+    #     self.playAudioFile('new.wav') 
         
       
-    def open_audio_file(self):
-        self.timer.start()
-        self.full_file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
-            None, 'Open Song', QtCore.QDir.rootPath(), 'wav(*.wav)')
-        self.playAudioFile(self.full_file_path)
-        spf = wave.open(self.full_file_path, "r")
-        self.signal = spf.readframes(-1)
-        self.signal = np.frombuffer(self.signal, "int16")
-        self.fs = spf.getframerate()
-        self.time = np.linspace(0, len(self.signal) / self.fs, num=len(self.signal))
+    # def open_audio_file(self):
+    #     self.timer.start()
+    #     self.full_file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
+    #         None, 'Open Song', QtCore.QDir.rootPath(), 'wav(*.wav)')
+    #     self.playAudioFile(self.full_file_path)
+    #     spf = wave.open(self.full_file_path, "r")
+    #     self.signal = spf.readframes(-1)
+    #     self.signal = np.frombuffer(self.signal, "int16")
+    #     self.fs = spf.getframerate()
+    #     self.time = np.linspace(0, len(self.signal) / self.fs, num=len(self.signal))
     
            
 
-    def playAudioFile(self, full_file_path):
-        #self.pushButton_play.setText("Pause")
+    # def playAudioFile(self, full_file_path):
+    #     #self.pushButton_play.setText("Pause")
         
-        self.media = vlc.MediaPlayer(full_file_path)
-        self.media.play()
+    #     self.media = vlc.MediaPlayer(full_file_path)
+    #     self.media.play()
 
-        self.fs, self.data = wavfile.read(full_file_path)  
+    #     self.fs, self.data = wavfile.read(full_file_path)  
        
-    def play(self):
-        self.media.play()
-        self.timer.start()
+    # def play(self):
+    #     self.media.play()
+    #     self.timer.start()
     
-    def pause(self):
-        self.media.pause()
-        self.timer.stop()
+    # def pause(self):
+    #     self.media.pause()
+    #     self.timer.stop()
     
       
-    def signal_plot(self):
-        fs = self.fs
-        interval = int((fs/2))
-        print(interval)
+    # def signal_plot(self):
+    #     fs = self.fs
+    #     interval = int((fs/2))
+    #     print(interval)
         
 
         # Extract Raw Audio from Wav File
-        self.spf = wave.open(self.full_file_path, "r")
-        self.mainsignal_widget.setYRange(min(self.signal),max(self.signal))
-        self.mainsignal_widget.setXRange(self.time[self.ptr],self.time[self.ptr+interval] )
-        self.mainsignal_widget.plot(self.time[self.ptr:self.ptr+interval], self.signal[self.ptr:self.ptr+interval])
-        self.ptr+=interval
-        print(self.time[self.ptr])
+        # self.spf = wave.open(self.full_file_path, "r")
+        # self.mainsignal_widget.setYRange(min(self.signal),max(self.signal))
+        # self.mainsignal_widget.setXRange(self.time[self.ptr],self.time[self.ptr+interval] )
+        # self.mainsignal_widget.plot(self.time[self.ptr:self.ptr+interval], self.signal[self.ptr:self.ptr+interval])
+        # self.ptr+=interval
+        # print(self.time[self.ptr])
 
+
+
+    # def spectrogram(self):
+        
+    #     self.frequency, self.t, self.Sxx = signal.spectrogram(self.signal, self.fs)
+    #     self.spectrogram_widget.canvas.axes.pcolormesh(self.t, self.frequency, 10*np.log10(self.Sxx), shading='auto', cmap=self.colormap)
+    #     self.spectrogram_widget.canvas.draw()
+    #     self.Canvas.draw()
+    #     # plt.xlabel('Time')
+    #     # plt.ylabel('Frequency')
 
     
    
