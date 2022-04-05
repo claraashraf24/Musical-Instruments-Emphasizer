@@ -4,7 +4,8 @@ from PyQt5 import QtWidgets, uic, QtCore
 from PyQt5.QtWidgets import QSlider, QLabel
 from PyQt5.QtCore import QUrl
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
-from playsound import playsound
+from pydub import AudioSegment
+from pydub.playback import play
 import os
 import sys  
 import wave, sys
@@ -37,10 +38,16 @@ class MainWindow(QtWidgets.QMainWindow):
         #move volume slider
         self.volume_number.setAlignment(QtCore.Qt.AlignCenter)
         self.volume_slider.valueChanged.connect(self.move_slider)
+        self.volume_slider.valueChanged.connect( self.change_volume)
         self.volume_slider.setMaximum(100)
+        self.selected_note= ''
 
     def move_slider(self, value):
         self.volume_number.setText(str(value))
+    
+    def change_volume(self):
+        value = int(self.volume_slider.value()) 
+        self.player.setVolume(value) 
 
 
 
@@ -50,35 +57,39 @@ class MainWindow(QtWidgets.QMainWindow):
 
          if x/self.xylo_label.size().width() > 0.05 and x/self.xylo_label.size().width() < 0.14 and y/self.xylo_label.size().width() > 0.15 and y/self.xylo_label.size().width() < 0.30 :
             print("Bar 1") 
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/Bar 1.wav')
+            self.selected_note="Bar 1.wav"
+            
+            
     
          if x/self.xylo_label.size().width() > 0.16 and x/self.xylo_label.size().width() < 0.25 and y/self.xylo_label.size().width() > 0.13 and y/self.xylo_label.size().width() < 0.32 :
             print("Bar 2")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/Bar 2.wav')
+            self.selected_note="Bar 2.wav"
 
          if x/self.xylo_label.size().width() > 0.28 and x/self.xylo_label.size().width() < 0.37 and y/self.xylo_label.size().width() > 0.12 and y/self.xylo_label.size().width() < 0.33 :
             print("Bar 3")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/Bar 3.wav')
+            self.selected_note="Bar 3.wav"
 
          if x/self.xylo_label.size().width() > 0.40 and x/self.xylo_label.size().width() < 0.49 and y/self.xylo_label.size().width() > 0.1 and y/self.xylo_label.size().width() < 0.33 :
             print("Bar 4")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/Bar 4.wav')
+            self.selected_note="Bar 4.wav"
 
          if x/self.xylo_label.size().width() > 0.51 and x/self.xylo_label.size().width() < 0.60 and y/self.xylo_label.size().width() > 0.08 and y/self.xylo_label.size().width() < 0.36 :
             print("Bar 5")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/Bar 5.wav')
+            self.selected_note="Bar 5.wav"
 
          if x/self.xylo_label.size().width() > 0.63 and x/self.xylo_label.size().width() < 0.72 and y/self.xylo_label.size().width() > 0.05 and y/self.xylo_label.size().width() < 0.38 :
             print("Bar 6")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/Bar 6.wav')
+            self.selected_note="Bar 6.wav"
 
          if x/self.xylo_label.size().width() > 0.75 and x/self.xylo_label.size().width() < 0.84 and y/self.xylo_label.size().width() > 0.03 and y/self.xylo_label.size().width() < 0.4 :
             print("Bar 7")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/Bar 7.wav')
+            self.selected_note="Bar 7.wav"
         
          if x/self.xylo_label.size().width() > 0.86 and x/self.xylo_label.size().width() < 0.96 and y/self.xylo_label.size().width() > 0.2 and y/self.xylo_label.size().width() < 0.42 :
             print("Bar 8")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/Bar 8.wav')
+            self.selected_note="Bar 8.wav"
+         self.playinstrument() 
+         
 
 
         #  print(x)
@@ -90,31 +101,32 @@ class MainWindow(QtWidgets.QMainWindow):
         y= event.pos().y()
         if x/self.drums_label.size().width() > 0.027 and x/self.drums_label.size().width() < 0.26 and y/self.drums_label.size().width() > 0.009 and y/self.drums_label.size().width() < 0.07 :
             print("Ride Cymbal") 
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/Ride Cymbal.wav')
+            self.selected_note="Ride Cymbal.wav"
 
         if x/self.drums_label.size().width() > 0.733 and x/self.drums_label.size().width() < 1.00 and y/self.drums_label.size().width() > 0.03 and y/self.drums_label.size().width() < 0.10 :
             print("Hi-Hat Cymbal") 
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/Hi-Hat Cymbal.wav')
+            self.selected_note="Hi-Hat Cymbal.wav"
 
         if x/self.drums_label.size().width() > 0.53 and x/self.drums_label.size().width() < 0.69 and y/self.drums_label.size().width() > 0.10 and y/self.drums_label.size().width() < 0.25 :
             print("Medium Tom") 
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/Medium Toml.wav')
+            self.selected_note="Medium Tom.wav"
 
         if x/self.drums_label.size().width() > 0.21 and x/self.drums_label.size().width() < 0.50 and y/self.drums_label.size().width() > 0.05 and y/self.drums_label.size().width() < 0.20 :
             print("High Tom")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/High Tom.wav')
+            self.selected_note="High Tom.wav"
 
         if x/self.drums_label.size().width() > 0.05 and x/self.drums_label.size().width() < 0.24 and y/self.drums_label.size().width() > 0.15 and y/self.drums_label.size().width() < 0.50 :
             print("Stand Tom") 
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/Stand Tom.wav')
+            self.selected_note="Stand Tom.wav"
 
         if x/self.drums_label.size().width() > 0.41 and x/self.drums_label.size().width() < 0.72 and y/self.drums_label.size().width() > 0.30 and y/self.drums_label.size().width() < 1.0 :
             print("Bass Drum") 
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/Bass Drum.wav')
+            self.selected_note="Bass Drum.wav"
 
         if x/self.drums_label.size().width() > 0.76 and x/self.drums_label.size().width() < 0.84 and y/self.drums_label.size().width() > 0.20 and y/self.drums_label.size().width() < 0.63 :
             print("Snare Drum") 
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/Snare Drum.wav')
+            self.selected_note="Snare Drum.wav"
+        self.playinstrument() 
        
 
         # print(x)
@@ -127,99 +139,100 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if x/self.piano_label.size().width() > 0.15 and x/self.piano_label.size().width() < 0.20  and y/self.piano_label.size().width() > 0.30 and y/self.piano_label.size().width() < 0.40 :
             print("White Key 1") 
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/White Key 1.wav')  
+            self.selected_note="White Key 1.wav"  
 
         if x/self.piano_label.size().width() > 0.20 and x/self.piano_label.size().width() < 0.25 and y/self.piano_label.size().width() > 0.30 and y/self.piano_label.size().width() < 0.40 :
             print("White Key 2")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/White Key 2.wav')
+            self.selected_note="White Key 2.wav"
 
         if x/self.piano_label.size().width() > 0.25 and x/self.piano_label.size().width() < 0.30 and y/self.piano_label.size().width() > 0.30 and y/self.piano_label.size().width() < 0.40 :
             print("White Key 3")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/White Key 3.wav')
+            self.selected_note="White Key 3.wav"
 
         if x/self.piano_label.size().width() > 0.30 and x/self.piano_label.size().width() < 0.35 and y/self.piano_label.size().width() > 0.30 and y/self.piano_label.size().width() < 0.40 :
             print("White Key 4")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/White Key 4.wav')
+            self.selected_note="White Key 4.wav"
 
         if x/self.piano_label.size().width() > 0.35 and x/self.piano_label.size().width() < 0.40 and y/self.piano_label.size().width() > 0.30 and y/self.piano_label.size().width() < 0.40 :
             print("White Key 5")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/White Key 5.wav')
+            self.selected_note="White Key 5.wav"
 
         if x/self.piano_label.size().width() > 0.40 and x/self.piano_label.size().width() < 0.45 and y/self.piano_label.size().width() > 0.30 and y/self.piano_label.size().width() < 0.40 :
             print("White Key 6")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/White Key 6.wav')
+            self.selected_note="White Key 6.wav"
 
         if x/self.piano_label.size().width() > 0.45 and x/self.piano_label.size().width() < 0.50 and y/self.piano_label.size().width() > 0.30 and y/self.piano_label.size().width() < 0.40 :
             print("White Key 7")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/White Key 7.wav')
+            self.selected_note="White Key 7.wav"
 
         if x/self.piano_label.size().width() > 0.50 and x/self.piano_label.size().width() < 0.55 and y/self.piano_label.size().width() > 0.30 and y/self.piano_label.size().width() < 0.40 :
             print("White Key 8")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/White Key 1.wav')
+            self.selected_note="White Key 1.wav"
 
         if x/self.piano_label.size().width() > 0.55 and x/self.piano_label.size().width() < 0.60 and y/self.piano_label.size().width() > 0.30 and y/self.piano_label.size().width() < 0.40 :
             print("White Key 9")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/White Key 2.wav')
+            self.selected_note="White Key 2.wav"
 
         if x/self.piano_label.size().width() > 0.60 and x/self.piano_label.size().width() < 0.65 and y/self.piano_label.size().width() > 0.30 and y/self.piano_label.size().width() < 0.40 :
             print("White Key 10")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/White Key 3.wav')
+            self.selected_note="White Key 3.wav"
 
         if x/self.piano_label.size().width() > 0.65 and x/self.piano_label.size().width() < 0.70 and y/self.piano_label.size().width() > 0.30 and y/self.piano_label.size().width() < 0.40 :
             print("White Key 11")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/White Key 4.wav')
+            self.selected_note="White Key 4.wav"
 
         if x/self.piano_label.size().width() > 0.70 and x/self.piano_label.size().width() < 0.75 and y/self.piano_label.size().width() > 0.30 and y/self.piano_label.size().width() < 0.40 :
             print("White Key 12")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/White Key 5.wav')
+            self.selected_note="White Key 5.wav"
 
         if x/self.piano_label.size().width() > 0.75 and x/self.piano_label.size().width() < 0.80 and y/self.piano_label.size().width() > 0.30 and y/self.piano_label.size().width() < 0.40 :
             print("White Key 13")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/White Key 6.wav')
+            self.selected_note="White Key 6.wav"
 
         if x/self.piano_label.size().width() > 0.80 and x/self.piano_label.size().width() < 0.85 and y/self.piano_label.size().width() > 0.30 and y/self.piano_label.size().width() < 0.40 :
             print("White Key 14")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/White Key 7.wav')
+            self.selected_note="White Key 7.wav"
 
         if x/self.piano_label.size().width() > 0.18 and x/self.piano_label.size().width() < 0.22 and y/self.piano_label.size().width() > 0.10 and y/self.piano_label.size().width() < 0.29 :
             print("Black Key 1")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/lack Key 1.wav')
+            self.selected_note="Black Key 1.wav"
 
         if x/self.piano_label.size().width() > 0.23 and x/self.piano_label.size().width() < 0.27 and y/self.piano_label.size().width() > 0.10 and y/self.piano_label.size().width() < 0.29 :
             print("Black Key 2")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/Black Key 2.wav')
+            self.selected_note="Black Key 2.wav"
 
         if x/self.piano_label.size().width() > 0.34 and x/self.piano_label.size().width() < 0.37 and y/self.piano_label.size().width() > 0.10 and y/self.piano_label.size().width() < 0.29 :
             print("Black Key 3")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/Black Key 3.wav')
+            self.selected_note="Black Key 3.wav"
 
         if x/self.piano_label.size().width() > 0.39 and x/self.piano_label.size().width() < 0.42 and y/self.piano_label.size().width() > 0.10 and y/self.piano_label.size().width() < 0.29 :
             print("Black Key 4")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/Black Key 4.wav')
+            self.selected_note="Black Key 4.wav"
 
         if x/self.piano_label.size().width() > 0.44 and x/self.piano_label.size().width() < 0.47 and y/self.piano_label.size().width() > 0.10 and y/self.piano_label.size().width() < 0.29 :
             print("Black Key 5")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/Black Key 5.wav')
+            self.selected_note="Black Key 5.wav"
 
         if x/self.piano_label.size().width() > 0.54 and x/self.piano_label.size().width() < 0.57 and y/self.piano_label.size().width() > 0.10 and y/self.piano_label.size().width() < 0.29 :
             print("Black Key 6")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/Black Key 1.wav')
+            self.selected_note="Black Key 1.wav"
 
         if x/self.piano_label.size().width() > 0.59 and x/self.piano_label.size().width() < 0.62 and y/self.piano_label.size().width() > 0.10 and y/self.piano_label.size().width() < 0.29 :
             print("Black Key 7")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/Black Key 2.wav')
+            self.selected_note="Black Key 2.wav"
 
         if x/self.piano_label.size().width() > 0.69 and x/self.piano_label.size().width() < 0.73 and y/self.piano_label.size().width() > 0.10 and y/self.piano_label.size().width() < 0.29 :
             print("Black Key 8")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/Black Key 3.wav')
+            self.selected_note="Black Key 3.wav"
 
         if x/self.piano_label.size().width() > 0.74 and x/self.piano_label.size().width() < 0.78 and y/self.piano_label.size().width() > 0.10 and y/self.piano_label.size().width() < 0.29 :
             print("Black Key 9")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/Black Key 4.wav')
+            self.selected_note="Black Key 4.wav"
 
         if x/self.piano_label.size().width() > 0.79 and x/self.piano_label.size().width() < 0.83 and y/self.piano_label.size().width() > 0.10 and y/self.piano_label.size().width() < 0.29 :
             print("Black Key 10")
-            playsound('C:/Users/Asus a/Desktop/DSP/task 3/github/Musical-Instruments-Emphasizer-equa/Black Key 5.wav')
+            self.selected_note="Black Key 5.wav"
+        self.playinstrument() 
        
 
         # print(x)
@@ -230,6 +243,7 @@ class MainWindow(QtWidgets.QMainWindow):
         url = QUrl.fromLocalFile(full_file_path)
         content = QMediaContent(url)
         self.player.setMedia(content)
+        # self.media = vlc.MediaPlayer(full_file_path) # for change_volume
         self.player.play()
         self.timer.start()
     
@@ -255,11 +269,16 @@ class MainWindow(QtWidgets.QMainWindow):
         self.mainsignal_widget.plot(time, signal)
         ptr+=0.5
 
-    # def playinstrument(self):
-    #     # for playing note.wav file
-    #     playsound(self.selected_not)
-    #     print('playing sound using  playsound')
-        
+    def playinstrument(self):
+         url = QUrl.fromLocalFile(self.selected_note)
+         content = QMediaContent(url)
+         self.player.setMedia(content)
+         self.player.play()
+         self.timer.start()
+        # # for playing wav file
+        # note = AudioSegment.from_wav(self.selected_note)
+        # print('playing sound using  pydub')
+        # play(note)
 
                
 app = QtWidgets.QApplication(sys.argv)
