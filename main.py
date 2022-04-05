@@ -1,16 +1,20 @@
+from time import time
 import numpy as np 
 from numpy.fft import fft, ifft
 from PyQt5 import QtWidgets, uic, QtCore
 from PyQt5.QtWidgets import QSlider, QLabel
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, QTimer
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 from pydub import AudioSegment
 from pydub.playback import play
 import os
 import sys  
 import wave, sys
+from scipy.io import wavfile
+import scipy
+import vlc 
 
-ptr=0
+
 
 class MainWindow(QtWidgets.QMainWindow):
 
@@ -21,11 +25,16 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.timer = QtCore.QTimer()
         self.timer.setInterval(500)
+        self.signal = []
+        self.time = []
+        self.fs = 0
+        self.ptr=0
         self.player = QMediaPlayer() # initializer
-        self.action_open_2.triggered.connect(self.play_sound)
+        self.action_open_2.triggered.connect(lambda:self.open_audio_file())
         self.timer.timeout.connect(self.signal_plot)
         self.pause_button.clicked.connect(self.pause)
-        self.play_button.clicked.connect(self.replay)
+        self.play_button.clicked.connect(self.play)
+        self.equalize_button.clicked.connect(self.equalizee)
         self.piano_label.mousePressEvent  = self.piano
         self.drums_label.mousePressEvent = self.drums
         self.xylo_label.mousePressEvent = self.xylophone
@@ -33,22 +42,34 @@ class MainWindow(QtWidgets.QMainWindow):
         # self.drums.connect(self.playinstrument)
         # self.xylophone.connect(self.playinstrument)
         #define slider widget
-        self.volume_slider = self.findChild(QSlider, "volume_slider")
-        self.volume_number = self.findChild(QLabel, "volume_number")
-        #move volume slider
-        self.volume_number.setAlignment(QtCore.Qt.AlignCenter)
-        self.volume_slider.valueChanged.connect(self.move_slider)
-        self.volume_slider.valueChanged.connect( self.change_volume)
+        self.volume_slider.setMinimum(0)
         self.volume_slider.setMaximum(100)
-        self.selected_note= ''
+        self.volume_slider.setValue(100)
+        self.volume_slider.setTickInterval(10)
+        self.volume_slider.setSingleStep(10)
+        self.volume_slider.setTickPosition(QSlider.TicksBelow)
+        self.volume_slider.valueChanged.connect( self.adjust_volume)
+        self.volume_slider.valueChanged.connect( self.slider_text)
+        self.sliders = [self.instrument1_slider,self.instrument2_slider,self.instrument3_slider]
+        for i in range(len(self.sliders)):
+            self.sliders[i].setOrientation(QtCore.Qt.Horizontal)
+            self.sliders[i].setMinimum(0)
+            self.sliders[i].setMaximum(10)
+            self.sliders[i].setValue(1)
+            self.sliders[i].setTickInterval(1)
+            self.sliders[i].setSingleStep(1)
+            self.sliders[i].setTickPosition(QSlider.TicksBelow)
+            #self.sliders[i].setObjectName(self.sliders_names[i])
 
-    def move_slider(self, value):
+    def adjust_volume(self):
+        value = int(self.volume_slider.value())
+        self.media.audio_set_volume(value)
+
+    def slider_text(self, value):
         self.volume_number.setText(str(value))
-    
-    def change_volume(self):
-        value = int(self.volume_slider.value()) 
-        self.player.setVolume(value) 
 
+    # def change_volume_label(self):
+    #     self.volume_number.setText(str(value)) 
 
 
     def xylophone(self, event):
@@ -238,36 +259,86 @@ class MainWindow(QtWidgets.QMainWindow):
         # print(x)
         # print(y)
     
-    def play_sound(self):
-        full_file_path = os.path.join(os.getcwd(), 'test.wav')
-        url = QUrl.fromLocalFile(full_file_path)
-        content = QMediaContent(url)
-        self.player.setMedia(content)
-        # self.media = vlc.MediaPlayer(full_file_path) # for change_volume
-        self.player.play()
+    def equalizee(self):
+        self.timer.start()
+        # [bass , piano--- , altoSaxophone--- , guitar--- , flute, bell]
+        freq_min = [0, 1000, 250]
+        freq_max = [800, 2000, 900]
+        # freq_min = [0, 1000, 250, 2000, 262, 73]
+        # freq_max = [800, 2000, 900, 15000, 2092, 1172]
+
+
+        Gains = []
+        Gains.append(self.instrument1_slider.value())
+        Gains.append(self.instrument2_slider.value())
+        Gains.append(self.instrument3_slider.value())
+      
+        
+        self.fs, self.data = wavfile.read(self.full_file_path)
+        self.data = self.data / 2.0 ** 15
+        N = len(self.data)
+
+        rfft_coeff = np.fft.rfft(self.data)
+        frequencies = np.fft.rfftfreq(N, 1. / self.fs)
+
+        for i in range(3):
+            for j in range(len(frequencies)):
+                if frequencies[j] >= freq_min[i] and frequencies[j] <= freq_max[i]:
+                    rfft_coeff[j] = rfft_coeff[j] * Gains[i]
+
+        Equalized_signal = np.fft.irfft(rfft_coeff)
+        scipy.io.wavfile.write('new.wav', self.fs, Equalized_signal)
+        self.media.stop()
+        self.playAudioFile('new.wav') 
+        
+      
+    def open_audio_file(self):
+        self.timer.start()
+        self.full_file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
+            None, 'Open Song', QtCore.QDir.rootPath(), 'wav(*.wav)')
+        self.playAudioFile(self.full_file_path)
+        spf = wave.open(self.full_file_path, "r")
+        self.signal = spf.readframes(-1)
+        self.signal = np.frombuffer(self.signal, "int16")
+        self.fs = spf.getframerate()
+        self.time = np.linspace(0, len(self.signal) / self.fs, num=len(self.signal))
+    
+           
+
+    def playAudioFile(self, full_file_path):
+        #self.pushButton_play.setText("Pause")
+        
+        self.media = vlc.MediaPlayer(full_file_path)
+        self.media.play()
+
+        self.fs, self.data = wavfile.read(full_file_path)  
+       
+    def play(self):
+        self.media.play()
         self.timer.start()
     
     def pause(self):
-        self.player.pause()
+        self.media.pause()
         self.timer.stop()
     
-    def replay(self):
-        self.player.play()
-        self.timer.start(500)
-        
+      
     def signal_plot(self):
-        global ptr
-        spf = wave.open("test.wav", "r")
-        # Extract Raw Audio from Wav File
-        signal = spf.readframes(-1)
-        signal = np.frombuffer(signal, "int16")
-        fs = spf.getframerate()
-        time = np.linspace(0, len(signal) / fs, num=len(signal))
+        fs = self.fs
+        interval = int((fs/2))
+        print(interval)
         
-        self.mainsignal_widget.setYRange(min(signal),max(signal))
-        self.mainsignal_widget.setXRange(0 + ptr, 1 + ptr)
-        self.mainsignal_widget.plot(time, signal)
-        ptr+=0.5
+
+        # Extract Raw Audio from Wav File
+        self.spf = wave.open(self.full_file_path, "r")
+        self.mainsignal_widget.setYRange(min(self.signal),max(self.signal))
+        self.mainsignal_widget.setXRange(self.time[self.ptr],self.time[self.ptr+interval] )
+        self.mainsignal_widget.plot(self.time[self.ptr:self.ptr+interval], self.signal[self.ptr:self.ptr+interval])
+        self.ptr+=interval
+        print(self.time[self.ptr])
+
+
+    
+   
 
     def playinstrument(self):
          url = QUrl.fromLocalFile(self.selected_note)
