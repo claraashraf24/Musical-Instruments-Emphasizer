@@ -48,6 +48,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # self.drums.connect(self.playinstrument)
         # self.xylophone.connect(self.playinstrument)
         #define slider widget
+        self.full_file_path = ""
         self.volume_slider.setMinimum(0)
         self.volume_slider.setMaximum(100)
         self.volume_slider.setValue(100)
@@ -299,22 +300,24 @@ class MainWindow(QtWidgets.QMainWindow):
         
       
     def open_audio_file(self):
-        self.timer.start()
         self.full_file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
             None, 'Open Song', QtCore.QDir.rootPath(), 'wav(*.wav)')
         self.playAudioFile(self.full_file_path)
         spf = wave.open(self.full_file_path, "r")
         self.signal = spf.readframes(-1)
         self.signal = np.frombuffer(self.signal, "int16")
+        print(self.signal)
         self.fs = spf.getframerate()
         self.time = np.linspace(0, len(self.signal) / self.fs, num=len(self.signal))
-        
+        self.timer.start()
         self.spectrogram()
 
     def spectrogram(self):
-        sample_rate, samples = wavfile.read('test.wav')
-        self.frequency, self.time, self.Sxx = signal.spectrogram(samples, sample_rate)
-        self.SpectogramWidget.canvas.axes.pcolormesh(self.time, self.frequency, self.Sxx, shading='auto', cmap=self.colormap)
+        sample_rate, samples = wavfile.read('new.wav')
+        print(sample_rate)
+        print(samples.flatten())
+        SpectorgramFrequency, SpectorgramTime, Sxx = signal.spectrogram(samples.flatten(), sample_rate)
+        self.SpectogramWidget.canvas.axes.pcolormesh(SpectorgramTime, SpectorgramFrequency, Sxx)
         self.SpectogramWidget.canvas.draw()
         self.Canvas.draw()
     
@@ -323,8 +326,10 @@ class MainWindow(QtWidgets.QMainWindow):
     def playAudioFile(self, full_file_path):
         #self.pushButton_play.setText("Pause")
         
-        self.media = vlc.MediaPlayer(full_file_path)
-        self.media.play()
+        url = QUrl.fromLocalFile(full_file_path)
+        content = QMediaContent(url) 
+        self.player.setMedia(content)
+        self.player.play()
 
         self.fs, self.data = wavfile.read(full_file_path)  
        
@@ -341,8 +346,7 @@ class MainWindow(QtWidgets.QMainWindow):
         fs = self.fs
         interval = int((fs/2))
         print(interval)
-        
-
+    
         # Extract Raw Audio from Wav File
         self.spf = wave.open(self.full_file_path, "r")
         self.mainsignal_widget.setYRange(min(self.signal),max(self.signal))
