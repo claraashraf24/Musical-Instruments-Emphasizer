@@ -34,6 +34,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.play_button.clicked.connect(self.play) 
         # self.equalize_button.clicked.connect(self.equalizee)
         self.equalize_button.clicked.connect(self.equalizee)
+        
+       
+        self.volume_slider.setMinimum(0)
+        self.volume_slider.setMaximum(200)
+        self.volume_slider.setValue(100)
+        self.volume_slider.setTickInterval(20)
+        self.volume_slider.setSingleStep(20)
+        self.volume_slider.setTickPosition(QSlider.TicksBelow)
+        self.volume_slider.valueChanged.connect( self.adjust_volume)
         self.sliders = [self.instrument1_slider,self.instrument2_slider,self.instrument3_slider]
         for i in range(len(self.sliders)):
             self.sliders[i].setOrientation(QtCore.Qt.Horizontal)
@@ -45,7 +54,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.sliders[i].setTickPosition(QSlider.TicksBelow)
             #self.sliders[i].setObjectName(self.sliders_names[i])
 
-    
+    def adjust_volume(self):
+        value = int(self.volume_slider.value())
+        self.media.audio_set_volume(value)
     def equalizee(self):
         self.timer.start()
         # [bass , piano--- , altoSaxophone--- , guitar--- , flute, bell]
