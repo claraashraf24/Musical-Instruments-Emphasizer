@@ -12,7 +12,11 @@ import sys
 import wave, sys
 from scipy.io import wavfile
 import scipy
-import vlc 
+import vlc
+import logging
+
+
+
 
 
 
@@ -22,13 +26,14 @@ class MainWindow(QtWidgets.QMainWindow):
         #Load the UI Page
         super(MainWindow, self).__init__(*args, **kwargs)
         uic.loadUi('task3.ui', self)
-
+        logging.basicConfig(filename='appwq.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
         self.timer = QtCore.QTimer()
         self.timer.setInterval(500)
         self.signal = []
         self.time = []
         self.fs = 0
         self.ptr=0
+        self.fss=0
         self.player = QMediaPlayer() # initializer
         self.action_open_2.triggered.connect(lambda:self.open_audio_file())
         self.timer.timeout.connect(self.signal_plot)
@@ -261,35 +266,44 @@ class MainWindow(QtWidgets.QMainWindow):
     
     def equalizee(self):
         self.timer.start()
-        # [bass , piano--- , altoSaxophone--- , guitar--- , flute, bell]
-        freq_min = [0, 1000, 250]
-        freq_max = [800, 2000, 900]
-        # freq_min = [0, 1000, 250, 2000, 262, 73]
-        # freq_max = [800, 2000, 900, 15000, 2092, 1172]
+        try:
+         
+         
+       
+         
+         # [bass , piano--- , altoSaxophone--- , guitar--- , flute, bell]
+         freq_min = [0, 1000, 250]
+         freq_max = [800, 2000, 900]
+         # freq_min = [0, 1000, 250, 2000, 262, 73]
+         # freq_max = [800, 2000, 900, 15000, 2092, 1172]
 
 
-        Gains = []
-        Gains.append(self.instrument1_slider.value())
-        Gains.append(self.instrument2_slider.value())
-        Gains.append(self.instrument3_slider.value())
+         Gains = []
+         Gains.append(self.instrument1_slider.value())
+         Gains.append(self.instrument2_slider.value())
+         Gains.append(self.instrument3_slider.value())
       
         
-        self.fs, self.data = wavfile.read(self.full_file_path)
-        self.data = self.data / 2.0 ** 15
-        N = len(self.data)
+         self.fs, self.data = wavfile.read(self.full_file_path)
+         self.data = self.data / self.fss
+         N = len(self.data)
 
-        rfft_coeff = np.fft.rfft(self.data)
-        frequencies = np.fft.rfftfreq(N, 1. / self.fs)
-
-        for i in range(3):
+         rfft_coeff = np.fft.rfft(self.data)
+         frequencies = np.fft.rfftfreq(N, 1. / self.fs)
+        except Exception as e:
+         logging.error("Exception occurred", exc_info=True)
+         for i in range(3):
             for j in range(len(frequencies)):
                 if frequencies[j] >= freq_min[i] and frequencies[j] <= freq_max[i]:
                     rfft_coeff[j] = rfft_coeff[j] * Gains[i]
 
-        Equalized_signal = np.fft.irfft(rfft_coeff)
-        scipy.io.wavfile.write('new.wav', self.fs, Equalized_signal)
-        self.media.stop()
-        self.playAudioFile('new.wav') 
+         Equalized_signal = np.fft.irfft(rfft_coeff)
+         scipy.io.wavfile.write('new.wav', self.fs, Equalized_signal)
+         self.media.stop()
+         self.playAudioFile('new.wav') 
+        
+    
+         
         
       
     def open_audio_file(self):

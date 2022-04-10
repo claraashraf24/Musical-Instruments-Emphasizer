@@ -1,0 +1,5 @@
+root - ERROR - Exception occurred
+Traceback (most recent call last):
+  File "c:\Users\BOOTCAMP\Documents\GitHub\Musical-Instruments-Emphasizer\main.py", line 287, in equalizee
+    self.fs, self.data = wavfile.read(self.full_file_path)
+AttributeError: 'MainWindow' object has no attribute 'full_file_path'
