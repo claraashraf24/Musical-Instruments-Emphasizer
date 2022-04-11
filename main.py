@@ -271,12 +271,10 @@ class MainWindow(QtWidgets.QMainWindow):
          
        
          
-         # [bass , piano--- , altoSaxophone--- , guitar--- , flute, bell]
+         
          freq_min = [0, 1000, 250]
          freq_max = [800, 2000, 900]
-         # freq_min = [0, 1000, 250, 2000, 262, 73]
-         # freq_max = [800, 2000, 900, 15000, 2092, 1172]
-
+         
 
          Gains = []
          Gains.append(self.instrument1_slider.value())
